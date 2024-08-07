@@ -21,7 +21,7 @@ def get_embedding(text):
 
     resp = openai_client.embeddings.create(
         model="mixedbread-ai/mxbai-embed-large-v1",
-        input=[text]
+        input=text
     )
     embs = [x['embedding'] for x in resp.to_dict()['data']]
     return embs
