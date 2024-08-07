@@ -7,7 +7,6 @@ from textwrap import dedent
 
 import openai
 import runpod
-import configs
 
 
 dotenv_path = os.path.join(os.path.dirname(__file__), '../', '.env')
