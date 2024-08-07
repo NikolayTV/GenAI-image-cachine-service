@@ -1,0 +1,58 @@
+version: '3.9'
+
+services:
+  imagecache:
+    hostname: 'imagecache'
+    image: ghcr.io/chroma-core/chroma:latest
+    volumes:  
+      - chroma-data:/chroma/chroma/
+    ports:
+      - 8017:8017
+    networks:
+      - net
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: /bin/sh -c "exec python src/main.py"
+    depends_on:
+      - chroma-db
+      - mongo-db
+    restart: unless-stopped
+
+  chroma-db:
+    image: chromadb/chroma:latest
+    environment:
+      - IS_PERSISTENT=TRUE
+      - CHROMA_SERVER_HTTP_PORT=8000
+    volumes:  
+      - chroma-data:/chroma/chroma/
+    ports:
+      - 8000:8000
+    networks:
+      - net
+    restart: unless-stopped
+
+  mongo-db:
+    image: mongo:5.0
+    hostname: 'mongo-db'
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: intim
+      MONGO_INITDB_ROOT_PASSWORD: intimpass
+    volumes:
+      - mongo-data:/data/db
+    ports:
+      - "27017:27017"
+    networks:
+      - net
+    restart: unless-stopped
+
+volumes:
+  mongo-data:
+    driver: local
+  chroma-data:
+    driver: local
+
+networks:
+  net:
+    driver: bridge
+
