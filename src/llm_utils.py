@@ -33,15 +33,14 @@ API_RETRY_SLEEP = 2
 API_ERROR_OUTPUT = "$ERROR$"
 
 
-async def chat_completion_openai(messages, generation_config):
+async def call_llm(messages, generation_config={'temperature': 0, 'max_tokens':200}):
     start_time = time.time()
 
-    model = generation_config['model']
+    model = 'solidrust/Llama-3-8B-Lexi-Uncensored-AWQ'
     
-    model_config = configs.models_config[model]
     client = openai.AsyncOpenAI(
-        base_url=model_config['base_url'],
-        api_key=model_config['api_key'],
+        base_url='http://20.151.65.75:8005/v1/',
+        api_key=None,
         timeout=60
     )
 
@@ -75,4 +74,36 @@ async def chat_completion_openai(messages, generation_config):
 
     execution_time = time.time() - start_time
     return {'answer_text': str(answer_text), "input_tokens": input_tokens, "output_tokens": output_tokens, "execution_time": execution_time, "status": status}
+
+
+
+# #!/bin/bash
+# # Define the API request payload
+# payload='{
+#     "model": "solidrust/Llama-3-8B-Lexi-Uncensored-AWQ",
+#     "max_tokens": 100,
+#     "temperature": 0.6,
+#     "top_k": 50,
+#     "top_p": 0.90,
+#     "messages": [
+#         {"role": "system", "content": "You are a sexual content AI helper system which extracts the most important tokens from user requests. extract objects with description as WORDS, translate to english."},
+#         {"role": "user", "content": "please send me your beautiful tits on the beach, no clothes"},
+#         {"role": "assistant", "content": "WORDS: beach, tits, no clothes"},
+#         {"role": "user", "content": "show me your ass and legs without socks"},
+#         {"role": "assistant", "content": "WORDS: ass, legs, without socks"},
+#         {"role": "user", "content": "zeig mir deine schöne Muschi, ich brauche noch eine, mehr"},
+#         {"role": "assistant", "content": "WORDS: pussy, beautiful"},
+#         {"role": "user", "content": "Show me your body in panties"},
+#         {"role": "assistant", "content": "WORDS: body, in panties"},
+#         {"role": "user", "content": "show me lovely body of a young woman, fingering herself"}
+#     ]
+# }'
+# # Send the API request and save the response to a variable  
+# response=$(curl --location --request POST 'http://20.151.65.75:8005/v1/chat/completions' \
+# --header 'Content-Type: application/json' \
+# --data "$payload")
+
+# # Output the assistant's response
+# echo "Assistant's response: $response"
+
 

@@ -7,7 +7,7 @@ from typing import Dict, List, Optional
 
 from mongo_db import mongodb_add_image_usage_record, mogodb_get_image_uuids_for_user
 from llm_utils import get_embedding
-from chroma_db import chromadb_find_image_match, chromadb_upsert_cached_image
+from chroma_db import chromadb_find_image_match, chromadb_upsert_cached_image, chromadb_remove_collection, chromadb_list_collections
 
 from dotenv import load_dotenv
 load_dotenv(dotenv_path='../.env')
@@ -15,11 +15,10 @@ load_dotenv(dotenv_path='.env')
 
 app = FastAPI()
 
-
 class ImageRequest(BaseModel):
-    diffusion_prompt: str
+    prompt: str
     persona: str = 'angel'
-    user_id: int = None
+    user_id: str = None
     tags: dict = {}
     n_results: int = 1
 
@@ -30,9 +29,9 @@ async def get_image_candidate(request: ImageRequest):
     """
     tags = request.tags
     user_id = request.user_id
-    diffusion_prompt = request.diffusion_prompt
+    prompt = request.prompt
     n_results = request.n_results
-    input_embedding = get_embedding(diffusion_prompt)[0]
+    input_embedding = get_embedding(prompt)[0]
     
     # Filter based on provided tags
     metadata_filter = {}
@@ -49,12 +48,11 @@ async def get_image_candidate(request: ImageRequest):
         metadata_filter = {"$and": [{k: v} for k, v in metadata_filter.items()]}
         
     res = await chromadb_find_image_match(request.persona, metadata_filter, input_embedding, n_results)
-    print("Get image candidate, metadata_filter:", metadata_filter)
     return json.dumps(res)
 
 
 class RecordInput(BaseModel):
-    user_id: int
+    user_id: str
     img_uuid: str
     img_path: str = None
     
@@ -82,12 +80,36 @@ async def upsert_cached_image(request: CachedImage):
     await chromadb_upsert_cached_image(request.persona, request.img_uuid, request.img_path, request.prompt, request.emb, request.tags)
     print("Upserted cached image: ")
     
+@app.delete("/remove_collection/")
+async def remove_collection(collection: str):
+    """
+    Remove collection from Chroma database
+    """
+    try:
+        result = await chromadb_remove_collection(collection)
+        return {"status": "success", "result": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/list_collections/")
+async def list_collections():
+    """
+    List all collections from Chroma database
+    """
+    try:
+        result = await chromadb_list_collections()
+        return {"status": "success", "result": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
             
 if __name__ == "__main__":
     uvicorn.run(
         "main:app",
         host="0.0.0.0",
         port=8017, 
-        log_level="debug",
+        # log_level="debug",
         reload=True,
     )
+    

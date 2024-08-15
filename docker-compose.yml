@@ -13,7 +13,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: /bin/sh -c "exec python src/main.py"
+    command: /bin/sh -c "exec python main.py"
     depends_on:
       - chroma-db
       - mongo-db

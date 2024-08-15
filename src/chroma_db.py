@@ -22,4 +22,18 @@ async def chromadb_upsert_cached_image(persona, img_uuid, img_path, prompt, emb,
     documents = img_path
     collection.upsert(documents=documents, embeddings=emb, metadatas=metadatas, ids=img_uuid)
 
+
+async def chromadb_remove_collection(collection):
+    collections = chroma_client.list_collections()
     
+    if collection in [x.name for x in collections]:
+        chroma_client.delete_collection(collection)
+        return f"{collection} removed"
+    else:
+        return f"{collection} not exists"
+        
+
+async def chromadb_list_collections():
+    collections = chroma_client.list_collections()
+    print('collections', collections)
+    return [x.name for x in collections]
